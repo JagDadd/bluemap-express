@@ -1,6 +1,8 @@
 import Path from "path";
 import express from "express";
 import dotenv from "dotenv";
+import { requestSQLHandler } from "./sql";
+import { requestFileHandler } from "./file";
 
 dotenv.config();
 // import { Compression } from "./bluemap/storage/compression/compression";
@@ -15,49 +17,10 @@ app.use((req, res, next) => {
     next();
 });
 
-
-if (!process.env.WEBSERVER_ROOT) {
-    console.error(`Must specify webserver root in environment.`)
-    console.error(`WEBSERVER_ROOT = ..path to bluemap/web/..`)
-    process.exit(1);
+if (process.env.STORAGE == "sql") {
+    app.use(requestSQLHandler());
+} else {
+    app.use(requestFileHandler());
 }
-const ROOT = Path.resolve(process.env.WEBSERVER_ROOT);
 
-// const fileStorage = new FileStorage(Path.resolve(ROOT, "maps"), "gzip", true);
-
-// (async () => {
-//     console.log(await fileStorage.mapIds());
-// })();
-
-
-app.get("*.json", (req, res, next) => {
-
-    if (req.url.includes("textures.json") ) {
-        req.url = req.url.replace(".json", ".json.gz");
-        res.set("Content-Encoding", "gzip");
-        res.set("Content-Type", "application/json");
-    }
-    next();
-});
-
-app.get("*.prbm", (req, res, next) => {
-    
-    console.log(req.path);
-
-    req.url = req.url.replace(".prbm", ".prbm.gz");
-    res.set("Content-Encoding", "gzip");
-    res.set("Content-Type", "application/json");
-
-    next();
-    // const regx = /tiles\/([\d/]+)\/x(-?[\d/]+)z(-?[\d/]+).*/g
-
-})
-
-app.use("/", express.static(ROOT, {fallthrough: true}));
-
-app.use((req, res, next) => {
-    res.status(204)
-    res.send();
-})
-
-app.listen(3021);
+app.listen(3021, () => console.log("Listening on 3021"));

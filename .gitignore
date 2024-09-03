@@ -3,3 +3,5 @@ bluemap
 
 node_modules/
 .env
+
+*.crt
